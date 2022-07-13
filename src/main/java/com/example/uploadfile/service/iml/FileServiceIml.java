@@ -2,24 +2,30 @@ package com.example.uploadfile.service.iml;
 
 import com.example.uploadfile.service.FileService;
 import lombok.extern.log4j.Log4j2;
+import org.apache.tomcat.util.security.MD5Encoder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Objects;
+import java.util.UUID;
 
 @Service
 @Log4j2
 public class FileServiceIml implements FileService {
 
-    @Value("${config.path}")
-    private static String path;
+//    @Value("${config.path}")
+    private static String path = "E:\\\\Work\\\\Demo\\\\uploadfile\\\\src\\\\main\\\\java\\\\com\\\\example\\\\uploadfile\\\\container";
 
-    @Value("${config.des}")
-    private static String des;
+//    @Value("${config.des}")
+    private static String des = "\\\\download";
+
+    public FileServiceIml() {
+    }
 
     @Override
     public int upLoadLargeFile(MultipartFile file)  {
@@ -28,12 +34,14 @@ public class FileServiceIml implements FileService {
         int segment = 0;
         String base64 = "";
         try {
+            //File fileBase = new File("C:\\Users\\domin\\Videos\\Captures\\Zoom Cuộc họp 2022-04-07 19-32-50.mp4");
             InputStream inputStream = file.getInputStream();
             BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
             String finalPath = path + des;
             if (!checkFolderExisted(finalPath)){
                 createNewFolder(finalPath);
             }
+            System.out.println(finalPath);
             OutputStream outputStream = new FileOutputStream(finalPath+"\\" + this.getFileName(file) + "." + this.getFileFormat(file), true);
 
             while (byteRead != -1) {
@@ -68,11 +76,12 @@ public class FileServiceIml implements FileService {
     }
 
     private String getFileName(MultipartFile file) {
-        return file.getName();
+        byte[] name = Objects.requireNonNull(file.getOriginalFilename()).getBytes();
+        return MD5Encoder.encode(name);
     }
 
     private String getFileFormat(MultipartFile file) {
-        return Objects.requireNonNull(file.getContentType()).split("/")[1];
+        return file.getContentType().split("/")[1];
     }
 
     private boolean checkFolderExisted(String path) {
